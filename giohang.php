@@ -33,42 +33,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_masp'])) {
 }
 
 // Handle checkout
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['thanh_toan'])) {
-    $query = "SELECT masp, tensp, gia, soluong, anh FROM giohang WHERE tentaikhoan = ?";
+// Khi người dùng xác nhận trong modal
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['xac_nhan_thanh_toan'])) {
+    $hoten = $_POST['hoten'] ?? '';
+    $diachi = $_POST['diachi'] ?? '';
+    $sdt = $_POST['sdt'] ?? '';
+    $pttt = $_POST['pttt'] ?? '';
+
+    if (!$tentaikhoan) {
+        echo "<script>alert('Bạn cần đăng nhập để thanh toán'); window.location='dangnhap.php';</script>";
+        exit;
+    }
+
+    // Lấy danh sách sản phẩm trong giỏ
+    $query = "SELECT masp, tensp, gia, soluong FROM giohang WHERE tentaikhoan = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $tentaikhoan);
     $stmt->execute();
     $result = $stmt->get_result();
+
     $tongtien = 0;
 
     while ($row = $result->fetch_assoc()) {
         $masp = $row['masp'];
-        $tensp = $row['tensp'] ?? 'Không có tên';
-        $anh = $row['anh'] ?? '';
+        $tensp = $row['tensp'];
         $gia = floatval(preg_replace("/[^0-9.-]/", "", $row['gia']));
-        $soluong = intval($row['soluong'] ?? 1);
+        $soluong = intval($row['soluong']);
         $thanhTien = $gia * $soluong;
         $tongtien += $thanhTien;
 
-        // Insert into donhang
-        $insert_query = "INSERT INTO donhang (tentaikhoan, masp, tensp, tongtien, soluong) VALUES (?, ?, ?, ?, ?)";
-        $insert_stmt = $conn->prepare($insert_query);
-        $insert_stmt->bind_param("sssdi", $tentaikhoan, $masp, $tensp, $thanhTien, $soluong);
-        $insert_stmt->execute();
-        $insert_stmt->close();
+        // Lưu vào bảng đơn hàng
+        $insert = $conn->prepare("INSERT INTO donhangthanhtoan (tentaikhoan, masp, tensp, soluong, tongtien, hoten, diachi, sdt, pttt, ngaylap) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+        $insert->bind_param("sssdiisss", $tentaikhoan, $masp, $tensp, $soluong, $thanhTien, $hoten, $diachi, $sdt, $pttt);
+        $insert->execute();
+        $insert->close();
     }
 
-    // Clear cart after checkout
-// Clear cart after checkout
-$delete_query = "DELETE FROM giohang WHERE tentaikhoan = ?";
-$delete_stmt = $conn->prepare($delete_query);
-$delete_stmt->bind_param("s", $tentaikhoan);
-$delete_stmt->execute();
-$delete_stmt->close();
+    // Xóa giỏ hàng
+    $delete = $conn->prepare("DELETE FROM giohang WHERE tentaikhoan = ?");
+    $delete->bind_param("s", $tentaikhoan);
+    $delete->execute();
+    $delete->close();
 
-echo "<script>alert('Thanh toán thành công! Tổng tiền: " . number_format($tongtien, 0, ',', '.') . " VNĐ'); window.location='giohang.php';</script>";
-$stmt->close();
+    echo "<script>alert('Thanh toán thành công! Tổng tiền: " . number_format($tongtien, 0, ',', '.') . " VNĐ'); window.location='giohang.php';</script>";
 }
+
 
 // Load cart items
 $query = "SELECT masp, tensp, gia, soluong, anh FROM giohang WHERE tentaikhoan = ?";
@@ -246,8 +258,93 @@ $conn->close();
                 width: 60px;
             }
         }
+        /* Modal */
+.modal {
+  display: none; 
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 16px;
+  color: #cd853f;
+  text-align: center;
+}
+
+.modal-content label {
+  display: block;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.modal-content input, .modal-content select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-actions button[type="submit"] {
+  background-color: #cd853f;
+  color: white;
+}
+
+.modal-actions button#closeModal {
+  background-color: #ccc;
+}
+
     </style>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+  const checkoutBtn = document.querySelector('.checkout-btn');
+  const modal = document.getElementById('checkoutModal');
+  const closeBtn = document.getElementById('closeModal');
+
+  // Mở modal khi bấm "THANH TOÁN"
+  checkoutBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    modal.style.display = 'flex';
+  });
+
+  // Đóng modal khi bấm "Hủy"
+  closeBtn.addEventListener('click', function () {
+    modal.style.display = 'none';
+  });
+
+  // Đóng modal khi click ra ngoài
+  window.addEventListener('click', function (e) {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+});
         // Update subtotal when quantity changes
         function updateThanhTien(input) {
             var row = input.closest('.cart-item');
@@ -371,4 +468,33 @@ $conn->close();
         </div>
     </div>
 </body>
+<!-- Modal Thanh Toán -->
+<div id="checkoutModal" class="modal">
+  <div class="modal-content">
+    <h2>Thông tin thanh toán</h2>
+    <form method="post" id="checkoutForm">
+      <!-- <label>Họ tên:</label>
+      <input type="text" name="hoten" required> -->
+
+      <label>Địa chỉ:</label>
+      <input type="text" name="diachi" required>
+
+      <label>Số điện thoại:</label>
+      <input type="text" name="sdt" required pattern="[0-9]{10,11}" title="Nhập đúng số điện thoại">
+
+      <label>Phương thức thanh toán:</label>
+      <select name="pttt" required>
+        <option value="Tiền mặt khi nhận hàng">Tiền mặt khi nhận hàng</option>
+        <option value="Chuyển khoản ngân hàng">Chuyển khoản ngân hàng</option>
+        <option value="Ví điện tử">Ví điện tử</option>
+      </select>
+
+      <div class="modal-actions">
+        <button type="submit" name="xac_nhan_thanh_toan">Xác nhận</button>
+        <button type="button" id="closeModal">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </html>

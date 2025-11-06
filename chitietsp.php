@@ -1,85 +1,75 @@
-<?php include "head.php" ?>
+<?php include "head.php"; ?>
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Database connection and product data retrieval
-$msp = isset($_GET['masp']) ? $_GET['masp'] : '';  // Đổi từ 'id' thành 'masp'
-$server = 'localhost';
-$user = 'root';
-$pass = '';
-$database = 'webnoithat';
-
-$conn = new mysqli($server, $user, $pass, $database);
+$msp = $_GET['masp'] ?? '';
+$conn = new mysqli('localhost', 'root', '', 'webnoithat');
 $conn->set_charset("utf8");
 
-// Fetch product details based on masp
-$sql = "SELECT tensp, gia, chatlieu, mau, hinhthuc, mota, anh FROM sanpham WHERE masp = ?";
-$stmt = $conn->prepare($sql);
+$stmt = $conn->prepare("SELECT tensp, gia, chatlieu, mau, hinhthuc, mota, anh FROM sanpham WHERE masp = ?");
 $stmt->bind_param("s", $msp);
 $stmt->execute();
-$result = $stmt->get_result();
-$product = $result->fetch_assoc();
+$product = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-$tentaikhoan = isset($_SESSION['username']) ? $_SESSION['username'] : null;
+$tentaikhoan = $_SESSION['username'] ?? null;
 
-// Xử lý thêm vào giỏ hàng
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['xac_nhan_thanh_toan'])) {
+    $hoten = $_POST['hoten'] ?? '';
+    $diachi = $_POST['diachi'] ?? '';
+    $sdt = $_POST['sdt'] ?? '';
+    $pttt = $_POST['pttt'] ?? '';
+    $soluong = $_POST['soluong'] ?? 1;
+
     if (!$tentaikhoan) {
-        echo "<script>alert('Bạn cần đăng nhập để sử dụng chức năng này!'); window.location='dangnhap.php';</script>";
+        echo "<script>alert('Bạn cần đăng nhập để thanh toán'); window.location='dangnhap.php';</script>";
         exit;
     }
-    $soluong = max(1, intval($_POST['quantity-input'] ?? 1));
-    $masp = $msp;
-    $tensp = $product['tensp'] ?? '';
-    $gia = $product['gia'] ?? 0;
-    $anh = $product['anh'] ?? '';
 
-    // Kiểm tra sản phẩm đã có trong giỏ chưa
-    $check = $conn->prepare("SELECT soluong FROM giohang WHERE masp = ? AND tentaikhoan = ?");
-    $check->bind_param("ss", $masp, $tentaikhoan);
+    $gia = floatval($product['gia']);
+    $tongtien = $gia * $soluong;
+
+    $insert = $conn->prepare("INSERT INTO donhangthanhtoan (tentaikhoan, masp, tensp, soluong, tongtien, hoten, diachi, sdt, pttt, ngaylap)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $insert->bind_param("sssdiisss", $tentaikhoan, $msp, $product['tensp'], $soluong, $tongtien, $hoten, $diachi, $sdt, $pttt);
+    $insert->execute();
+
+    echo "<script>alert('Thanh toán thành công!'); window.location='giohang.php';</script>";
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $soluong = $_POST['soluong'] ?? 1;
+
+    if (!$tentaikhoan) {
+        echo "<script>alert('Bạn cần đăng nhập để thêm vào giỏ hàng'); window.location='dangnhap.php';</script>";
+        exit;
+    }
+
+    // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+    $check = $conn->prepare("SELECT soluong FROM giohang WHERE tentaikhoan = ? AND masp = ?");
+    $check->bind_param("ss", $tentaikhoan, $msp);
     $check->execute();
-    $check->store_result();
-    if ($check->num_rows > 0) {
-        // Đã có, cập nhật số lượng
-        $update = $conn->prepare("UPDATE giohang SET soluong = soluong + ? WHERE masp = ? AND tentaikhoan = ?");
-        $update->bind_param("iss", $soluong, $masp, $tentaikhoan);
+    $result = $check->get_result();
+
+    if ($result->num_rows > 0) {
+        // Nếu đã có, cập nhật số lượng
+        $row = $result->fetch_assoc();
+        $newQty = $row['soluong'] + $soluong;
+        $update = $conn->prepare("UPDATE giohang SET soluong = ? WHERE tentaikhoan = ? AND masp = ?");
+        $update->bind_param("iss", $newQty, $tentaikhoan, $msp);
         $update->execute();
         $update->close();
-        echo "<script>alert('Cập nhật số lượng vào giỏ hàng thành công!');</script>";
     } else {
-        // Thêm mới
-        $insert = $conn->prepare("INSERT INTO giohang (masp, tensp, gia, soluong, tentaikhoan, anh) VALUES (?, ?, ?, ?, ?, ?)");
-        $insert->bind_param("sssiss", $masp, $tensp, $gia, $soluong, $tentaikhoan, $anh);
+        // Nếu chưa có, thêm mới vào giỏ hàng
+        $insert = $conn->prepare("INSERT INTO giohang (tentaikhoan, masp, tensp, gia, soluong, anh)
+                                  VALUES (?, ?, ?, ?, ?, ?)");
+        $insert->bind_param("sssdis", $tentaikhoan, $msp, $product['tensp'], $product['gia'], $soluong, $product['anh']);
         $insert->execute();
         $insert->close();
-        echo "<script>alert('Thêm vào giỏ hàng thành công!');</script>";
     }
+
     $check->close();
-}
-
-// Xử lý mua ngay
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buy_now'])) {
-    if (!$tentaikhoan) {
-        echo "<script>alert('Bạn cần đăng nhập để sử dụng chức năng này!'); window.location='dangnhap.php';</script>";
-        exit;
-    }
-    $soluong = max(1, intval($_POST['quantity-input'] ?? 1));
-    $masp = $msp;
-    $tensp = $product['tensp'] ?? '';
-    $gia = $product['gia'] ?? 0;
-    $anh = $product['anh'] ?? '';
-
-    // Thêm vào bảng đặt hàng
-    $insert = $conn->prepare("INSERT INTO dathang (masp, tensp, gia, soluong, tentaikhoan, anh) VALUES (?, ?, ?, ?, ?, ?)");
-    $insert->bind_param("sssiss", $masp, $tensp, $gia, $soluong, $tentaikhoan, $anh);
-    $insert->execute();
-    $insert->close();
-
-    // Chuyển hướng sang trang quản lý đơn hàng
-    echo "<script>alert('Đặt hàng thành công!'); window.location='dathang.php';</script>";
+    echo "<script>alert('Đã thêm vào giỏ hàng thành công!'); window.location='giohang.php';</script>";
     exit;
 }
 
@@ -87,13 +77,11 @@ $conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết sản phẩm - Nội Thất Toàn Đạt</title>
-    <style>
-        * {
+<meta charset="UTF-8">
+<title>Chi tiết sản phẩm</title>
+<style>
+            * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -256,22 +244,61 @@ $conn->close();
             background-color: var(--primary-color-light);
             color: white;
         }
-
-        .buy-now {
-            background: var(--primary-color);
-            border: none;
-            color: #fff;
-            padding: 12px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            border-radius: 8px;
-        }
-
-        .buy-now:hover {
-            background-color: var(--primary-color-light);
-        }
+/* Giữ nguyên style của bạn */
+.buy-now {
+  background-color: #7B4B37;
+  border: 2px solid #7B4B37;
+  color: #fff;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+.buy-now:hover {
+  background-color: #A67C68;
+  border-color: #A67C68;
+  transform: scale(1.03);
+}
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  justify-content: center; align-items: center;
+}
+.modal-content {
+  background: #fffaf1;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 90%; max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.modal-content h2 {
+  text-align: center;
+  color: #7B4B37;
+  margin-bottom: 15px;
+}
+.modal-content input, .modal-content select {
+  width: 100%; padding: 10px;
+  margin-top: 5px; border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.modal-actions {
+  margin-top: 15px; display: flex; justify-content: space-between;
+}
+.modal-actions button {
+  padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
+  border: none;
+}
+.modal-actions button[type="submit"] { background-color: #7B4B37; color: white; }
+.modal-actions button[type="button"] { background-color: #ccc; }
 
         .description {
             margin-top: 40px;
@@ -307,51 +334,19 @@ $conn->close();
                 height: 300px;
             }
         }
-    </style>
-    <script>
-        // Handle image loading
-        document.addEventListener('DOMContentLoaded', function() {
-            const img = document.querySelector('.product-image img');
-            if (img) {
-                if (img.complete) {
-                    img.classList.add('loaded');
-                } else {
-                    img.addEventListener('load', function() {
-                        img.classList.add('loaded');
-                    });
-                    img.addEventListener('error', function() {
-                        img.src = 'images/fallback.jpg'; // Fallback image
-                    });
-                }
-            }
-        });
-    </script>
+</style>
 </head>
 
 <body>
-    <div class="container">
-        <?php if (!$product): ?>
-            <div class="error-message">
-                <h2>Sản phẩm không tồn tại</h2>
-                <p>Mã sản phẩm: <?php echo htmlspecialchars($msp); ?></p>
-                <p><a href="index.php">Quay lại trang chủ</a></p>
-            </div>
-        <?php else: ?>
-            <div class="product-container">
-                <div class="product-image">
-                    <span class="image-loading">Đang tải...</span>
-                    <img src="<?php echo htmlspecialchars($product['anh'] ?? 'images/fallback.jpg'); ?>" alt="Product Image" loading="lazy" />
-                </div>
-                <div class="product-info">
-                    <h1 class="product-title"><?php echo htmlspecialchars($product['tensp'] ?? 'Sản phẩm không có tên'); ?></h1>
-
-                    <div class="product-price">
-                        <?php
-                        $gia = isset($product['gia']) ? number_format($product['gia'], 0, ',', '.') : '0';
-                        echo $gia . ' VNĐ';
-                        ?>
-                    </div>
-                    <div class="discount">MÃ GIẢM GIÁ: 1K</div>
+<div class="container">
+    <div class="product-container">
+        <div class="product-image">
+            <img src="<?= htmlspecialchars($product['anh'] ?? 'images/fallback.jpg') ?>" alt="Ảnh sản phẩm">
+        </div>
+        <div class="product-info">
+            <h1 class="product-title"><?= htmlspecialchars($product['tensp'] ?? '') ?></h1>
+            <div class="product-price"><?= number_format($product['gia'], 0, ',', '.') ?> VNĐ</div>
+            <div class="discount">MÃ GIẢM GIÁ: 1K</div>
 
                     <div class="specifications">
                         <h3>THÔNG SỐ KỸ THUẬT</h3>
@@ -370,25 +365,80 @@ $conn->close();
                             </tr>
                         </table>
                     </div>
-
-                    <form method="post" class="action-group">
-                        <div class="quantity-cart-group">
-                            <input type="number" class="quantity-input" name="quantity-input" value="1" min="1">
-                            <button type="submit" name="add_to_cart" class="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
-                        </div>
-                        <button type="submit" name="buy_now" class="buy-now">MUA NGAY</button>
-                    </form>
+            <form method="post" class="action-group">
+                <div class="quantity-cart-group">
+                    <input type="number" class="quantity-input" name="soluong" value="1" min="1">
+                    <button type="submit" name="add_to_cart" class="add-to-cart">THÊM VÀO GIỎ HÀNG</button>
                 </div>
-            </div>
-
-            <section class="description">
-                <h2>MÔ TẢ SẢN PHẨM</h2>
-                <p>
-                    <?php echo htmlspecialchars($product['mota'] ?? 'Không có mô tả'); ?>
-                </p>
-            </section>
-        <?php endif; ?>
+                <button type="button" class="buy-now">MUA NGAY</button>
+            </form>
+        </div>
     </div>
-</body>
+</div>
 
+<!-- Modal Thanh Toán -->
+<div id="checkoutModal" class="modal">
+  <div class="modal-content">
+    <h2>Xác nhận thanh toán</h2>
+    <div id="modalProductInfo" style="margin-bottom:15px;"></div>
+    <form method="post">
+      <input type="hidden" name="soluong" id="hiddenSoluong">
+      <label>Họ tên:</label>
+      <input type="text" name="hoten" required>
+
+      <label>Địa chỉ:</label>
+      <input type="text" name="diachi" required>
+
+      <label>Số điện thoại:</label>
+      <input type="text" name="sdt" required pattern="[0-9]{10,11}">
+
+      <label>Phương thức thanh toán:</label>
+      <select name="pttt" required>
+        <option value="Tiền mặt khi nhận hàng">Thanh toán khi nhận hàng</option>
+        <option value="Chuyển khoản ngân hàng">Chuyển khoản ngân hàng</option>
+        <option value="Ví điện tử">Ví điện tử</option>
+      </select>
+
+      <div class="modal-actions">
+        <button type="submit" name="xac_nhan_thanh_toan">Xác nhận</button>
+        <button type="button" id="closeModal">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('checkoutModal');
+  const buyNowBtn = document.querySelector('.buy-now');
+  const closeBtn = document.getElementById('closeModal');
+  const quantityInput = document.querySelector('.quantity-input');
+  const productInfoDiv = document.getElementById('modalProductInfo');
+  const hiddenSoluong = document.getElementById('hiddenSoluong');
+
+  buyNowBtn.addEventListener('click', () => {
+    const name = document.querySelector('.product-title').textContent;
+    const price = document.querySelector('.product-price').textContent;
+    const img = document.querySelector('.product-image img').src;
+    const soluong = quantityInput.value;
+
+    hiddenSoluong.value = soluong;
+
+    productInfoDiv.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="${img}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;">
+        <div>
+          <strong>${name}</strong><br>
+          <span>Giá: ${price}</span><br>
+          <span>Số lượng: ${soluong}</span>
+        </div>
+      </div>`;
+    modal.style.display = 'flex';
+  });
+
+  closeBtn.addEventListener('click', () => modal.style.display = 'none');
+  window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+});
+</script>
+</body>
 </html>

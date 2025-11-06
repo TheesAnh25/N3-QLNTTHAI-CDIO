@@ -220,7 +220,7 @@
       <h2 class="text-2xl font-bold">Tham gia ngay để nhận ưu đãi 15%!</h2>
       <p class="mt-2">Đăng ký nhận bản tin của chúng tôi để nhận mã giảm giá 15%!</p>
       <input type="email" placeholder="Email address" class="border border-muted p-2 rounded mt-4" />
-      <button class="mt-2 bg-primary text-primary-foreground p-2 rounded" style="background-color: #CD853F">Subscribe</button>
+      <button class="mt-2 bg-primary text-primary-foreground p-2 rounded " style="background-color: #CD853F">Subscribe</button>
     </section>
 
     <?php include 'boxchat.php'; ?>
@@ -245,6 +245,9 @@
         align-items: center;
         justify-content: center;
       }
+      .bg-secondary{
+        color: #ffff;
+      }
 
       .chat-container {
         position: fixed;
@@ -257,6 +260,9 @@
 
       .chat-container.active {
         display: block;
+      }
+      .text {
+        color: #fff;
       }
     </style>
 

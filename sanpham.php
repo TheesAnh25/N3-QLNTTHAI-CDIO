@@ -61,6 +61,7 @@ $result = $conn->query($sql);
                         $duongdan = "anh/" . $anh;
                     }
                     ?>
+                    <a href="chitietsp.php?masp=<?php echo urlencode($row['masp']); ?>">
                     <div class="border border-gray-300 p-4 rounded bg-white">
                         <img src="<?php echo htmlspecialchars($duongdan); ?>"
                             alt="Ảnh sản phẩm"
@@ -70,12 +71,13 @@ $result = $conn->query($sql);
                             <?php echo number_format($gia, 0, ',', '.'); ?> VND
                         </p>
 
-                        <a href="chitietsp.php?masp=<?php echo urlencode($row['masp']); ?>">
+                        
                             <div class="bg-orange-600 text-white hover:bg-orange-500 p-2 rounded text-center" style="background-color:#CD853F">
                                 Đặt hàng
                             </div>
-                        </a>
+                       
                     </div>
+                     </a>
                 <?php endwhile; ?>
             <?php else: ?>
                 <p>Không có sản phẩm nào.</p>

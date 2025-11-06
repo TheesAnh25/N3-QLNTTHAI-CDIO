@@ -96,16 +96,13 @@ if (!$username) {
     $giohang_onclick = "";
     $giohang_text = "";
 
-    $thongtin_href = "donhang.php";
+    $thongtin_href = "admin_donhangthanhtoan.php";
     $thongtin_onclick = "";
-    $thongtin_text = "Đơn Hàng";
+    $thongtin_text = "Quản Lý Đơn Hàng";
     
     $quanlysanpham_href = "quanlysanpham.php";
     $quanlysanpham_onclick = "";
     $quanlysanpham_text = "Quản Lý Sản Phẩm";
-
-    // $dathang_href = "dathang.php";
-    // $dathang_text = "Quản Lý Đơn Hàng";
 
     $cuoi_href = "dangxuat.php";
     $cuoi_text = "Đăng Xuất (" . htmlspecialchars($_SESSION['username']) . ")";
@@ -137,7 +134,7 @@ if (!$username) {
 }
 ?>
 <header class="flex justify-between items-center p-4 bg-secondary" style="background-color: #FDF5E6">
-    <div class="text-2xl font-bold">NỘI THẤT HIỆN ĐẠI</div>
+    <div class="text-2xl font-bold" style="color: black;">NỘI THẤT HIỆN ĐẠI</div>
   <nav class="space-x-4">
     <a href="trangchu.php" class="text-muted hover:text-muted-foreground" style="color: black;">Trang Chủ</a>
     <a href="sanpham.php" class="text-muted hover:text-muted-foreground" style="color: black;">Sản Phẩm</a>
@@ -186,17 +183,18 @@ if (!$username) {
 </style>
 <script>
 const suggestions = [
-    { name: "Bàn làm việc chân sắt", url: "chitietsp.php?id=sp01" },
-    { name: "Sofa đơn bọc nỉ", url: "chitietsp.php?id=sp02" },
-    { name: "Bàn IKEA 2m", url: "chitietsp.php?id=sp03" },
-    { name: "Bộ Bàn Ăn Scania", url: "chitietsp.php?id=sp04" },
-    { name: "Combo Giường Ngủ MOHO VLINE", url: "chitietsp.php?id=sp05" },
-    { name: "Combo Phòng Khách MOHO VLINE", url: "chitietsp.php?id=sp06" },
-    { name: "Tủ Quần Áo Gỗ Có Gương", url: "chitietsp.php?id=sp07" },
-    { name: "Combo Sofa Gỗ Cao Su Chữ L", url: "chitietsp.php?id=sp08" },
-    { name: "Ghế thư giãn", url: "chitietsp.php?id=sp09" },
-    { name: "Tủ giày thông minh", url: "chitietsp.php?id=sp10" }
+    { name: "Bàn làm việc chân sắt", url: "chitietsp.php?masp=sp01" },
+    { name: "Sofa đơn bọc nỉ", url: "chitietsp.php?masp=sp02" },
+    { name: "Bàn IKEA 2m", url: "chitietsp.php?masp=sp03" },
+    { name: "Bộ Bàn Ăn Scania", url: "chitietsp.php?masp=sp04" },
+    { name: "Combo Giường Ngủ MOHO VLINE", url: "chitietsp.php?masp=sp05" },
+    { name: "Combo Phòng Khách MOHO VLINE", url: "chitietsp.php?masp=sp06" },
+    { name: "Tủ Quần Áo Gỗ Có Gương", url: "chitietsp.php?masp=sp07" },
+    { name: "Combo Sofa Gỗ Cao Su Chữ L", url: "chitietsp.php?masp=sp08" },
+    { name: "Ghế thư giãn", url: "chitietsp.php?masp=sp09" },
+    { name: "Tủ giày thông minh", url: "chitietsp.php?masp=sp10" }
 ];
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-box');
@@ -207,28 +205,45 @@ document.addEventListener('DOMContentLoaded', function() {
     suggestionBox.style.left = searchInput.offsetLeft + 'px';
 
     searchInput.addEventListener('input', function() {
-        const value = this.value.trim().toLowerCase();
-        suggestionBox.innerHTML = '';
-        if (!value) {
-            suggestionBox.style.display = 'none';
-            return;
-        }
-        const filtered = suggestions.filter(item => item.name.toLowerCase().includes(value));
-        if (filtered.length === 0) {
-            suggestionBox.style.display = 'none';
-            return;
-        }
-        filtered.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'autocomplete-suggestion';
-            div.textContent = item.name;
-            div.onclick = function() {
-                window.location.href = item.url;
-            };
-            suggestionBox.appendChild(div);
-        });
+    const value = this.value.trim().toLowerCase();
+    suggestionBox.innerHTML = '';
+
+    // Nếu không nhập gì thì ẩn box
+    if (!value) {
+        suggestionBox.style.display = 'none';
+        return;
+    }
+
+    // Lọc theo ký tự người dùng nhập
+    const filtered = suggestions.filter(item => item.name.toLowerCase().includes(value));
+
+    // Nếu không có sản phẩm phù hợp thì hiển thị "Không tìm thấy"
+    if (filtered.length === 0) {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-suggestion';
+        div.textContent = 'Không tìm thấy sản phẩm nào';
+        div.style.color = '#999';
+        suggestionBox.appendChild(div);
         suggestionBox.style.display = 'block';
+        return;
+    }
+
+    // Hiển thị các gợi ý phù hợp
+    filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-suggestion';
+        div.innerHTML = item.name.replace(
+            new RegExp(value, 'gi'),
+            match => `<strong style="color:#CD853F">${match}</strong>`
+        );
+        div.onclick = function() {
+            window.location.href = item.url;
+        };
+        suggestionBox.appendChild(div);
     });
+
+    suggestionBox.style.display = 'block';
+});
 
     document.addEventListener('click', function(e) {
         if (!suggestionBox.contains(e.target) && e.target !== searchInput) {

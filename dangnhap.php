@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             <form method="post" autocomplete="off">
                 <div class="mb-4">
-                    <label class="block text-zinc-700 text-sm font-bold mb-2" for="txtUsername">TÊN ĐĂNG</label>
+                    <label class="block text-zinc-700 text-sm font-bold mb-2" for="txtUsername">TÊN ĐĂNG NHẬP</label>
                     <input type="text" id="txtUsername" name="txtUsername" class="border rounded-lg w-full py-2 px-3 text-zinc-700 focus:border-[#C4A484] transition duration-200" placeholder="Nhập tên đăng nhập" required>
                 </div>
                 <div class="mb-6">
