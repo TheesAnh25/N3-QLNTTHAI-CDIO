@@ -49,6 +49,14 @@ $products=$conn->query("SELECT * FROM sanpham ORDER BY masp DESC");
 <head>
   <meta charset="UTF-8">
   <title>Quản lý sản phẩm</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #fefaf0; margin: 0; padding: 0; }
+        h2 { color: #7a5a00; text-align: center; margin: 20px 0; font-size: 2rem; }
+        table { width: 90%; max-width: 1200px; margin: 20px auto; border-collapse: collapse;
+                background: #fffdf5; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        th, td { padding: 12px; border: 1px solid #e0d6c3; text-align: center; }
+        th { background: #e5c07b; color: #4b3c00; font-weight: bold; }
+  </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     function previewImage() {
@@ -58,9 +66,9 @@ $products=$conn->query("SELECT * FROM sanpham ORDER BY masp DESC");
     }
   </script>
 </head>
-<body class="bg-gray-100">
+<body>
   <div class="max-w-6xl mx-auto py-8">
-    <h1 class="text-3xl font-bold mb-6 text-center">Quản lý sản phẩm</h1>
+    <h1 class="text-3xl font-bold mb-6 text-center" style="color: #7a5a00;">Quản lý sản phẩm</h1>
     
     <!-- Form thêm -->
     <div class="bg-white shadow p-6 rounded-lg mb-8">
@@ -76,7 +84,7 @@ $products=$conn->query("SELECT * FROM sanpham ORDER BY masp DESC");
         <input name="gia" placeholder="Giá" class="border p-2">
         <input id="anh" name="anh" placeholder="Link ảnh" oninput="previewImage()" class="border p-2 md:col-span-2">
         <img id="imgPreview" class="max-h-40 hidden md:col-span-2">
-        <button type="submit" name="them" class="bg-blue-600 text-white px-4 py-2 rounded md:col-span-2">Thêm</button>
+        <button type="submit" name="them" class="bg-red-300 text-white px-4 py-2 rounded md:col-span-2">Thêm</button>
       </form>
     </div>
 

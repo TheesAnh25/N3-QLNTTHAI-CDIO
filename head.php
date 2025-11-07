@@ -96,9 +96,17 @@ if (!$username) {
     $giohang_onclick = "";
     $giohang_text = "";
 
-    $thongtin_href = "admin_donhangthanhtoan.php";
+    $quanlydonhang_href = "admin_donhangthanhtoan.php";
+    $quanlydonhang_onclick = "";
+    $quanlydonhang_text = "Quản Lý Đơn Hàng";
+
+    $quanlykhachhang_href = "admin_quanlytaikhoankhachhang.php";
+    $quanlykhachhang_onclick = "";
+    $quanlykhachhang_text = "Quản Lý Khách Hàng";
+
+    $thongtin_href = "";
     $thongtin_onclick = "";
-    $thongtin_text = "Quản Lý Đơn Hàng";
+    $thongtin_text = "";
     
     $quanlysanpham_href = "quanlysanpham.php";
     $quanlysanpham_onclick = "";
@@ -140,6 +148,8 @@ if (!$username) {
     <a href="sanpham.php" class="text-muted hover:text-muted-foreground" style="color: black;">Sản Phẩm</a>
     <?php if ($username == "admin"): ?>
         <a href="<?= $quanlysanpham_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlysanpham_onclick ? 'onclick="'.$quanlysanpham_onclick.'"' : '' ?>><?= $quanlysanpham_text ?></a>
+        <a href="<?= $quanlykhachhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlykhachhang_onclick ? 'onclick="'.$quanlykhachhang_onclick.'"' : '' ?>><?= $quanlykhachhang_text ?></a>
+        <a href="<?= $quanlydonhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlydonhang_onclick ? 'onclick="'.$quanlydonhang_onclick.'"' : '' ?>><?= $quanlydonhang_text ?></a>
     <?php endif; ?>
     <!-- Các menu khác -->
     <a href="<?= $giohang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $giohang_onclick ? 'onclick="'.$giohang_onclick.'"' : '' ?>><?= $giohang_text ?></a>
