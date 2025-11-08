@@ -55,9 +55,11 @@ if ($stmt) {
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Đơn hàng của bạn</title>
     <style>
         body {
@@ -65,33 +67,64 @@ if ($stmt) {
             font-family: Arial, sans-serif;
             min-height: 100vh;
         }
+
         h2 {
             color: #7a5a00;
             text-align: center;
             margin-top: 20px;
         }
+
         table {
             width: 90%;
             margin: 20px auto;
             border-collapse: collapse;
             background-color: #fffdf5;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-        th, td {
+
+        th,
+        td {
             padding: 12px;
             text-align: center;
             border: 1px solid #e0d6c3;
         }
+
         th {
             background-color: #e5c07b;
             color: #4b3c00;
         }
-        tr:nth-child(even) { background-color: #f9f5e8; }
-        tr:hover { background-color: #f1ecdc; }
+
+        tr:nth-child(even) {
+            background-color: #f9f5e8;
+        }
+
+        tr:hover {
+            background-color: #f1ecdc;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
     </style>
 </head>
+
 <body>
-    <h2>Đơn hàng của bạn</h2>
+    <h2 style="font-size: 30px; color: black;" class="blink">
+        <i class="fa-solid fa-cart-shopping blink" style="color:black; margin-right:10px;"></i>
+        <b>Đơn hàng của bạn</b>
+    </h2>
     <table>
         <tr>
             <th>Mã đơn</th>
@@ -107,23 +140,21 @@ if ($stmt) {
             <th>Trạng thái</th>
         </tr>
         <?php while ($row = $result->fetch_assoc()): ?>
-        <tr>
-            <td><?= $row['madon'] ?></td>
-            <td><?= htmlspecialchars($row['tentaikhoan']) ?></td>
-            <td><?= htmlspecialchars($row['tensp']) ?></td>
-            <td><?= $row['soluong'] ?></td>
-            <td><?= number_format($row['tongtien'], 0, ',', '.') ?> VNĐ</td>
-            <!-- <td><?= htmlspecialchars($row['hoten']) ?></td> -->
-            <td><?= htmlspecialchars($row['diachi']) ?></td>
-            <td><?= htmlspecialchars($row['sdt']) ?></td>
-            <td><?= htmlspecialchars($row['pttt']) ?></td>
-            <td><?= $row['ngaylap'] ?></td>
-            <td><?= htmlspecialchars($row['trangthai']) ?></td>
-        </tr>
+            <tr>
+                <td><?= $row['madon'] ?></td>
+                <td><?= htmlspecialchars($row['tentaikhoan']) ?></td>
+                <td><?= htmlspecialchars($row['tensp']) ?></td>
+                <td><?= $row['soluong'] ?></td>
+                <td><?= number_format($row['tongtien'], 0, ',', '.') ?> VNĐ</td>
+                <!-- <td><?= htmlspecialchars($row['hoten']) ?></td> -->
+                <td><?= htmlspecialchars($row['diachi']) ?></td>
+                <td><?= htmlspecialchars($row['sdt']) ?></td>
+                <td><?= htmlspecialchars($row['pttt']) ?></td>
+                <td><?= $row['ngaylap'] ?></td>
+                <td><?= htmlspecialchars($row['trangthai']) ?></td>
+            </tr>
         <?php endwhile; ?>
     </table>
-    <div style="text-align:center; margin-top:20px;">
-        <a href="trangchu.php" style="background:#e5c07b; color:#4b3c00; padding:10px 24px; border-radius:6px; text-decoration:none;">Quay lại Trang chủ</a>
-    </div>
 </body>
+
 </html>

@@ -1,11 +1,13 @@
-<?php include "head.php"; ?>
 <?php
+ob_start(); // ✅ Bật đệm đầu ra để tránh lỗi header
+
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 $msp = $_GET['masp'] ?? '';
 $conn = new mysqli('localhost', 'root', '', 'webnoithat');
 $conn->set_charset("utf8");
 
+// Lấy thông tin sản phẩm
 $stmt = $conn->prepare("SELECT tensp, gia, chatlieu, mau, hinhthuc, mota, anh FROM sanpham WHERE masp = ?");
 $stmt->bind_param("s", $msp);
 $stmt->execute();
@@ -14,6 +16,9 @@ $stmt->close();
 
 $tentaikhoan = $_SESSION['username'] ?? null;
 
+
+
+// -------------------- XỬ LÝ THANH TOÁN --------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['xac_nhan_thanh_toan'])) {
     $hoten = $_POST['hoten'] ?? '';
     $diachi = $_POST['diachi'] ?? '';
@@ -37,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['xac_nhan_thanh_toan']
     echo "<script>alert('Thanh toán thành công!'); window.location='giohang.php';</script>";
     exit;
 }
+
+// -------------------- XỬ LÝ THÊM GIỎ HÀNG --------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     $soluong = $_POST['soluong'] ?? 1;
 
@@ -45,14 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
         exit;
     }
 
-    // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
     $check = $conn->prepare("SELECT soluong FROM giohang WHERE tentaikhoan = ? AND masp = ?");
     $check->bind_param("ss", $tentaikhoan, $msp);
     $check->execute();
     $result = $check->get_result();
 
     if ($result->num_rows > 0) {
-        // Nếu đã có, cập nhật số lượng
         $row = $result->fetch_assoc();
         $newQty = $row['soluong'] + $soluong;
         $update = $conn->prepare("UPDATE giohang SET soluong = ? WHERE tentaikhoan = ? AND masp = ?");
@@ -60,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
         $update->execute();
         $update->close();
     } else {
-        // Nếu chưa có, thêm mới vào giỏ hàng
         $insert = $conn->prepare("INSERT INTO giohang (tentaikhoan, masp, tensp, gia, soluong, anh)
                                   VALUES (?, ?, ?, ?, ?, ?)");
         $insert->bind_param("sssdis", $tentaikhoan, $msp, $product['tensp'], $product['gia'], $soluong, $product['anh']);
@@ -75,6 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
 
 $conn->close();
 ?>
+
+<?php include "head.php"; ?>  <!-- ✅ CHUYỂN include xuống đây sau phần xử lý PHP -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -375,6 +381,109 @@ $conn->close();
         </div>
     </div>
 </div>
+<hr style="margin: 40px 0;">
+
+<!-- Đánh giá & Bình luận -->
+<div class="container" style="margin-top:40px;">
+  <div class="reviews-section">
+    <h2 style="color:#7B4B37;margin-bottom:20px;text-align:center;">Đánh giá & Bình luận</h2>
+
+    <?php
+    $conn = new mysqli('localhost', 'root', '', 'webnoithat');
+    $conn->set_charset("utf8");
+
+    // Xử lý gửi bình luận
+   // Xử lý gửi bình luận
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
+    if (!$tentaikhoan) {
+        echo "<script>alert('Bạn cần đăng nhập để đánh giá sản phẩm'); window.location='dangnhap.php';</script>";
+        exit;
+    }
+
+    $sosao = intval($_POST['sosao']);
+    $noidung = trim($_POST['noidung']);
+
+    // ✅ Kiểm tra người dùng đã mua hàng chưa
+    $checkPurchase = $conn->prepare("
+        SELECT 1 FROM donhangthanhtoan 
+        WHERE tentaikhoan = ? AND masp = ? LIMIT 1
+    ");
+    $checkPurchase->bind_param("ss", $tentaikhoan, $msp);
+    $checkPurchase->execute();
+    $purchased = $checkPurchase->get_result()->num_rows > 0;
+    $checkPurchase->close();
+
+    if (!$purchased) {
+        echo "<script>alert('Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua hàng!'); window.location.href='chitietsp.php?masp={$msp}';</script>";
+        exit;
+    }
+
+    // ✅ Nếu đã mua hàng thì cho phép đánh giá
+    if ($sosao >= 1 && $sosao <= 5 && $noidung != '') {
+        $stmt = $conn->prepare("INSERT INTO danhgia (masp, tentaikhoan, sosao, noidung) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssis", $msp, $tentaikhoan, $sosao, $noidung);
+        $stmt->execute();
+        $stmt->close();
+        echo "<script>alert('Cảm ơn bạn đã đánh giá!'); window.location.href='chitietsp.php?masp={$msp}';</script>";
+        exit;
+    } else {
+        echo "<p style='color:red;text-align:center;'>Vui lòng nhập nội dung và chọn số sao hợp lệ.</p>";
+    }
+}
+
+
+    // Hiển thị đánh giá
+    $reviews = $conn->prepare("SELECT tentaikhoan, sosao, noidung, ngaydang FROM danhgia WHERE masp = ? AND trangthai='Hiển thị' ORDER BY ngaydang DESC");
+    $reviews->bind_param("s", $msp);
+    $reviews->execute();
+    $result = $reviews->get_result();
+    ?>
+
+    <!-- Form đánh giá -->
+    <form method="post" class="review-form" style="margin:20px auto;max-width:700px;background:#fffaf1;border:1px solid #ddd;border-radius:12px;padding:20px;">
+      <h3 style="margin-bottom:10px;color:#7B4B37;">Gửi đánh giá của bạn:</h3>
+      <label for="sosao" style="font-weight:bold;">Số sao:</label>
+      <select name="sosao" id="sosao" required style="margin:5px 0 15px;padding:8px;border-radius:8px;border:1px solid #ccc;width:100%;">
+        <option value="5">★★★★★ (5 sao)</option>
+        <option value="4">★★★★☆ (4 sao)</option>
+        <option value="3">★★★☆☆ (3 sao)</option>
+        <option value="2">★★☆☆☆ (2 sao)</option>
+        <option value="1">★☆☆☆☆ (1 sao)</option>
+      </select>
+
+      <textarea name="noidung" rows="4" placeholder="Nhập nội dung bình luận..." required
+                style="width:100%;border-radius:8px;border:1px solid #ccc;padding:10px;"></textarea><br>
+      <button type="submit" name="submit_review"
+              style="margin-top:10px;padding:10px 20px;background-color:#7B4B37;color:white;border:none;border-radius:8px;cursor:pointer;width:100%;">
+        Gửi đánh giá
+      </button>
+    </form>
+
+    <!-- Danh sách đánh giá -->
+    <div class="review-list" style="margin-top:30px;">
+      <h3 style="color:#7B4B37;margin-bottom:10px;text-align:center;">Nhận xét của khách hàng</h3>
+      <?php if ($result->num_rows > 0): ?>
+        <?php while ($row = $result->fetch_assoc()): ?>
+          <div class="review-item" style="background:#fff;border:1px solid #ddd;border-radius:10px;padding:15px;margin:10px auto;max-width:700px;">
+            <strong style="color:#7B4B37;"><?= htmlspecialchars($row['tentaikhoan']) ?></strong>
+            <div style="color:#E2B007;margin:5px 0;">
+              <?= str_repeat('⭐', $row['sosao']) ?>
+            </div>
+            <p style="margin:5px 0;"><?= htmlspecialchars($row['noidung']) ?></p>
+            <small style="color:#777;"><?= date('d/m/Y H:i', strtotime($row['ngaydang'])) ?></small>
+          </div>
+        <?php endwhile; ?>
+      <?php else: ?>
+        <p style="text-align:center;color:#555;">Chưa có đánh giá nào cho sản phẩm này.</p>
+      <?php endif; ?>
+    </div>
+
+  </div>
+</div>
+
+
+<?php $conn->close(); ?>
+
 
 <!-- Modal Thanh Toán -->
 <div id="checkoutModal" class="modal">
@@ -442,3 +551,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+<?php ob_end_flush();

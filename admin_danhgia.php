@@ -1,5 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+// --- KHỞI ĐỘNG PHIÊN LÀM VIỆC ---
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // --- KIỂM TRA QUYỀN ADMIN ---
 if (!isset($_SESSION['username']) || strtolower($_SESSION['username']) !== 'admin') {
@@ -7,29 +10,35 @@ if (!isset($_SESSION['username']) || strtolower($_SESSION['username']) !== 'admi
     exit;
 }
 
+// --- KẾT NỐI CSDL ---
 $conn = new mysqli('localhost', 'root', '', 'webnoithat');
 $conn->set_charset("utf8");
-if ($conn->connect_error) die("Kết nối thất bại: " . $conn->connect_error);
 
-// --- XỬ LÝ XÓA TÀI KHOẢN ---
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    if ($conn->query("DELETE FROM taikhoan WHERE id = $id")) {
-        $_SESSION['toast'] = ['message' => 'Xóa tài khoản thành công!', 'type' => 'success'];
-    } else {
-        $_SESSION['toast'] = ['message' => 'Xóa tài khoản thất bại!', 'type' => 'error'];
-    }
-    header("Location: admin_quanlytaikhoankhachhang.php");
+if ($conn->connect_error) {
+    die("Kết nối thất bại: " . $conn->connect_error);
+}
+
+// --- CẬP NHẬT TRẠNG THÁI ---
+if (isset($_GET['toggle'])) {
+    $id = intval($_GET['toggle']);
+    $conn->query("UPDATE danhgia SET trangthai = IF(trangthai='Hiển thị','Ẩn','Hiển thị') WHERE id = $id");
+    header("Location: admin_danhgia.php");
     exit;
 }
 
-// --- LẤY DANH SÁCH TÀI KHOẢN ---
-$result = $conn->query("SELECT * FROM taikhoan ORDER BY id DESC");
+// --- XÓA ĐÁNH GIÁ ---
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    if ($conn->query("DELETE FROM danhgia WHERE id = $id")) {
+        echo "<script>alert('Xóa đánh giá thành công!'); window.location='admin_danhgia.php';</script>";
+    } else {
+        echo "<script>alert('Lỗi khi xóa: " . $conn->error . "');</script>";
+    }
+    exit;
+}
 
-// --- LẤY THÔNG BÁO TOAST TỪ SESSION ---
-$toastMessage = $_SESSION['toast']['message'] ?? '';
-$toastType = $_SESSION['toast']['type'] ?? '';
-unset($_SESSION['toast']);
+// --- LẤY DANH SÁCH ĐÁNH GIÁ ---
+$result = $conn->query("SELECT * FROM danhgia ORDER BY ngaydang DESC");
 ?>
 
 <?php include "head.php"; ?>
@@ -40,7 +49,7 @@ unset($_SESSION['toast']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <title>Quản lý tài khoản khách hàng</title>
+    <title>Quản lý đánh giá sản phẩm</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,6 +79,7 @@ unset($_SESSION['toast']);
             padding: 12px;
             border: 1px solid #e0d6c3;
             text-align: center;
+            vertical-align: middle;
         }
 
         th {
@@ -84,6 +94,7 @@ unset($_SESSION['toast']);
 
         tr:hover {
             background: #f1ecdc;
+            transition: 0.3s;
         }
 
         a.btn {
@@ -93,42 +104,14 @@ unset($_SESSION['toast']);
             font-weight: bold;
         }
 
-        a.xoa {
-            background: #f44336;
+        a.toggle {
+            background: #4CAF50;
             color: white;
         }
 
-        /* Toast nhỏ và thấp */
-        #toast {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            min-width: 200px;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(100%);
-            transition: transform 0.5s ease, opacity 0.5s ease;
-            z-index: 9999;
-        }
-
-        #toast.show {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(0);
-        }
-
-        #toast.success {
-            background-color: #4CAF50;
-        }
-
-        #toast.error {
-            background-color: #f44336;
+        a.delete {
+            background: #f44336;
+            color: white;
         }
 
         /* Hiệu ứng icon nháy */
@@ -170,42 +153,47 @@ unset($_SESSION['toast']);
 
 <body>
     <h2 style="font-size: 30px; color: black; text-align: center; overflow: hidden; margin-top: 20px;">
-  <span class="marquee">
-    <b>Quản Lí Tài Khoản Khách Hàng</b>
-  </span>
-</h2>
+        <span class="marquee">
+            <b>Quản Lí Đánh Giá Bình Luận</b>
+        </span>
+    </h2>
     <table>
         <tr>
             <th>ID</th>
-            <th>Tên tài khoản</th>
-            <th>Mật khẩu</th>
-            <th>Địa chỉ</th>
-            <th>Số điện thoại</th>
+            <th>Mã SP</th>
+            <th>Tài khoản</th>
+            <th>Số sao</th>
+            <th>Nội dung</th>
+            <th>Ngày đăng</th>
+            <th>Trạng thái</th>
             <th>Hành động</th>
         </tr>
         <?php while ($row = $result->fetch_assoc()): ?>
             <tr>
                 <td><?= $row['id'] ?></td>
-                <td><?= htmlspecialchars($row['taikhoan']) ?></td>
-                <td><?= htmlspecialchars($row['matkhau']) ?></td>
-                <td><?= htmlspecialchars($row['diachi']) ?></td>
-                <td><?= htmlspecialchars($row['sdt']) ?></td>
+                <td><?= htmlspecialchars($row['masp']) ?></td>
+                <td><?= htmlspecialchars($row['tentaikhoan']) ?></td>
+                <td style="color:#E2B007;font-weight:bold;">⭐ <?= $row['sosao'] ?></td>
+                <td style="text-align:left;"><?= htmlspecialchars($row['noidung']) ?></td>
+                <td><?= $row['ngaydang'] ?></td>
                 <td>
-                    <a class="btn xoa" href="?delete=<?= $row['id'] ?>" onclick="return confirm('Bạn có chắc muốn xóa tài khoản này?')">Xóa</a>
+                    <?php if ($row['trangthai'] == 'Hiển thị'): ?>
+                        <span style="color:green;font-weight:bold;">Hiển thị</span>
+                    <?php else: ?>
+                        <span style="color:red;font-weight:bold;">Ẩn</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <a class="btn toggle" href="?toggle=<?= $row['id'] ?>">Đổi trạng thái</a>
+                    <a class="btn delete" href="?delete=<?= $row['id'] ?>" onclick="return confirm('Bạn có chắc muốn xóa đánh giá này?')">Xóa</a>
                 </td>
             </tr>
         <?php endwhile; ?>
     </table>
-
-    <!-- Toast -->
-    <div id="toast" class="<?= $toastType ?>"><?= $toastMessage ?></div>
-    <script>
-        const toast = document.getElementById('toast');
-        if (toast.textContent.trim() !== '') {
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-    </script>
 </body>
 
 </html>
+
+<?php
+$conn->close();
+?>

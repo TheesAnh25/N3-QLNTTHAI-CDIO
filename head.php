@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Chủ - Nội Thất</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- Tailwind CDN và các plugin forms, typography -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <!-- Lazy load images -->
@@ -96,6 +97,10 @@ if (!$username) {
     $giohang_onclick = "";
     $giohang_text = "";
 
+    $danhgia_href = "admin_danhgia.php";
+    $danhgia_onclick = "";
+    $danhgia_text = "Quản Lý Đánh Giá";
+
     $quanlydonhang_href = "admin_donhangthanhtoan.php";
     $quanlydonhang_onclick = "";
     $quanlydonhang_text = "Quản Lý Đơn Hàng";
@@ -150,6 +155,7 @@ if (!$username) {
         <a href="<?= $quanlysanpham_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlysanpham_onclick ? 'onclick="'.$quanlysanpham_onclick.'"' : '' ?>><?= $quanlysanpham_text ?></a>
         <a href="<?= $quanlykhachhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlykhachhang_onclick ? 'onclick="'.$quanlykhachhang_onclick.'"' : '' ?>><?= $quanlykhachhang_text ?></a>
         <a href="<?= $quanlydonhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlydonhang_onclick ? 'onclick="'.$quanlydonhang_onclick.'"' : '' ?>><?= $quanlydonhang_text ?></a>
+        <a href="<?= $danhgia_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $danhgia_onclick ? 'onclick="'.$danhgia_onclick.'"' : '' ?>><?= $danhgia_text ?></a>
     <?php endif; ?>
     <!-- Các menu khác -->
     <a href="<?= $giohang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $giohang_onclick ? 'onclick="'.$giohang_onclick.'"' : '' ?>><?= $giohang_text ?></a>
@@ -159,8 +165,6 @@ if (!$username) {
     <a href="<?= $thongtin_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $thongtin_onclick ? 'onclick="'.$thongtin_onclick.'"' : '' ?>><?= $thongtin_text ?></a>
     <a href="<?= $cuoi_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $cuoi_onclick ? 'onclick="'.$cuoi_onclick.'"' : '' ?>><?= $cuoi_text ?></a>
 </nav>
-  
-
     <input type="text" id="search-box" placeholder="Search..." class="border border-muted p-2 rounded" autocomplete="off" style="width:220px; position:relative;" />
     <div id="autocomplete-box" class="autocomplete-suggestions" style="display:none;"></div>
 </header>
