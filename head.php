@@ -99,15 +99,15 @@ if (!$username) {
 
     $danhgia_href = "admin_danhgia.php";
     $danhgia_onclick = "";
-    $danhgia_text = "Quản Lý Đánh Giá";
+    $danhgia_text = "Đánh Giá";
 
     $quanlydonhang_href = "admin_donhangthanhtoan.php";
     $quanlydonhang_onclick = "";
-    $quanlydonhang_text = "Quản Lý Đơn Hàng";
+    $quanlydonhang_text = "Đơn Hàng";
 
     $quanlykhachhang_href = "admin_quanlytaikhoankhachhang.php";
     $quanlykhachhang_onclick = "";
-    $quanlykhachhang_text = "Quản Lý Khách Hàng";
+    $quanlykhachhang_text = "Khách Hàng";
 
     $thongtin_href = "";
     $thongtin_onclick = "";
@@ -115,7 +115,7 @@ if (!$username) {
     
     $quanlysanpham_href = "quanlysanpham.php";
     $quanlysanpham_onclick = "";
-    $quanlysanpham_text = "Quản Lý Sản Phẩm";
+    $quanlysanpham_text = "Sản Phẩm";
     
     $thongke_href = "admin_thongke.php";
     $thongke_onclick = "";
