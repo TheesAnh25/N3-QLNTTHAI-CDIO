@@ -116,6 +116,10 @@ if (!$username) {
     $quanlysanpham_href = "quanlysanpham.php";
     $quanlysanpham_onclick = "";
     $quanlysanpham_text = "Quản Lý Sản Phẩm";
+    
+    $thongke_href = "admin_thongke.php";
+    $thongke_onclick = "";
+    $thongke_text = "Thống Kê";
 
     $cuoi_href = "dangxuat.php";
     $cuoi_text = "Đăng Xuất (" . htmlspecialchars($_SESSION['username']) . ")";
@@ -156,6 +160,7 @@ if (!$username) {
         <a href="<?= $quanlykhachhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlykhachhang_onclick ? 'onclick="'.$quanlykhachhang_onclick.'"' : '' ?>><?= $quanlykhachhang_text ?></a>
         <a href="<?= $quanlydonhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlydonhang_onclick ? 'onclick="'.$quanlydonhang_onclick.'"' : '' ?>><?= $quanlydonhang_text ?></a>
         <a href="<?= $danhgia_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $danhgia_onclick ? 'onclick="'.$danhgia_onclick.'"' : '' ?>><?= $danhgia_text ?></a>
+        <a href="<?= $thongke_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $thongke_onclick ? 'onclick="'.$thongke_onclick.'"' : '' ?>><?= $thongke_text ?></a>
     <?php endif; ?>
     <!-- Các menu khác -->
     <a href="<?= $giohang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $giohang_onclick ? 'onclick="'.$giohang_onclick.'"' : '' ?>><?= $giohang_text ?></a>
