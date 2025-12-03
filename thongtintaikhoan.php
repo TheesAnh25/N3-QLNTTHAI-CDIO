@@ -16,7 +16,7 @@ $conn = new mysqli('localhost', 'root', '', 'webnoithat');
 $conn->set_charset("utf8");
 
 if (!$conn->connect_error) {
-    $stmt = $conn->prepare("SELECT * FROM taikhoan WHERE taikhoan = ?");
+    $stmt = $conn->prepare("SELECT * FROM KhachHang WHERE taikhoan = ?");
     if ($stmt) {
         $stmt->bind_param("s", $_SESSION['username']);
         $stmt->execute();

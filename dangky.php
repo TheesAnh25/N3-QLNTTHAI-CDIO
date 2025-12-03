@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $alert = "Kết nối thất bại: " . $conn->connect_error;
     } else {
         // Kiểm tra xem tên đăng nhập đã tồn tại trong bảng taikhoan chưa
-        $stmt = $conn->prepare("SELECT * FROM taikhoan WHERE taikhoan = ?");
+        $stmt = $conn->prepare("SELECT * FROM KhachHang WHERE taikhoan = ?");
         $stmt->bind_param("s", $tentaikhoan);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Nếu chưa tồn tại, tiến hành thêm tài khoản mới
             // Mã hóa mật khẩu trước khi lưu vào CSDL để tăng bảo mật
             $hashed_password = password_hash($matkhau, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO taikhoan (taikhoan, matkhau, diachi, sdt) VALUES (?, ?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO KhachHang (taikhoan, matkhau, diachi, sdt) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("ssss", $tentaikhoan, $hashed_password, $diachi, $sdt);
             if ($stmt->execute()) {
                 // Lưu thông tin vào session

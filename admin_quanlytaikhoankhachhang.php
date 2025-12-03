@@ -14,7 +14,7 @@ if ($conn->connect_error) die("Kết nối thất bại: " . $conn->connect_erro
 // --- XỬ LÝ XÓA TÀI KHOẢN ---
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    if ($conn->query("DELETE FROM taikhoan WHERE id = $id")) {
+    if ($conn->query("DELETE FROM KhachHang WHERE id = $id")) {
         $_SESSION['toast'] = ['message' => 'Xóa tài khoản thành công!', 'type' => 'success'];
     } else {
         $_SESSION['toast'] = ['message' => 'Xóa tài khoản thất bại!', 'type' => 'error'];
@@ -24,7 +24,7 @@ if (isset($_GET['delete'])) {
 }
 
 // --- LẤY DANH SÁCH TÀI KHOẢN ---
-$result = $conn->query("SELECT * FROM taikhoan ORDER BY id DESC");
+$result = $conn->query("SELECT * FROM KhachHang ORDER BY id DESC");
 
 // --- LẤY THÔNG BÁO TOAST TỪ SESSION ---
 $toastMessage = $_SESSION['toast']['message'] ?? '';

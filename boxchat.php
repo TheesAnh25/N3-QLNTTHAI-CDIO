@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear'])) {
     <meta charset="UTF-8">
     <title>webnoithat</title>
     <style>
-        /* ===== Giao diện tổng thể ===== */
+       
         body {
             background: #f8f6f1;
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear'])) {
             padding: 0;
             overflow: hidden;
         }
-        /* ===== Header chat ===== */
+     
         .chat-header {
             display: flex;
             align-items: center;
@@ -245,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear'])) {
 </head>
 <body>
     <div class="chat-container">
-        <!-- ===== Header chat với avatar, tên, trạng thái, menu ===== -->
+        
         <div class="chat-header">
             <img src="https://i.pinimg.com/236x/2f/08/ab/2f08ab311cb92ed2cfafc691b12a8ce2.jpg" alt="Avatar">
             <div class="info">
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear'])) {
                 <div class="name">FurniBot</div>
             </div>
             <div class="icons">
-                <!-- Dropdown menu dấu 3 chấm -->
+                
                 <div class="menu-dropdown" id="menuDropdown">
                     <button class="menu-btn" id="menuBtn" title="More">&#8942;</button>
                     <div class="menu-content" id="menuContent">

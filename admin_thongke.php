@@ -12,31 +12,28 @@ $conn = new mysqli("localhost", "root", "", "webnoithat");
 $conn->set_charset("utf8");
 if ($conn->connect_error) die("Kết nối thất bại: " . $conn->connect_error);
 
-// =================================================================================
-// 1. LẤY SỐ LIỆU TỔNG QUAN (DỰA TRÊN TIỀN VÀ NGÀY)
-// =================================================================================
 
 // Tổng doanh thu toàn thời gian (Chỉ tính đơn 'Hoàn tất')
-$sql_total = "SELECT SUM(tongtien) as total FROM donhangthanhtoan WHERE trangthai = 'Hoàn tất'";
+$sql_total = "SELECT SUM(tongtien) as total FROM hoadon WHERE trangthai = 'Hoàn tất'";
 $total_revenue = $conn->query($sql_total)->fetch_assoc()['total'] ?? 0;
 
 // Doanh thu HÔM NAY
 $date_today = date('Y-m-d');
-$sql_today = "SELECT SUM(tongtien) as total FROM donhangthanhtoan 
+$sql_today = "SELECT SUM(tongtien) as total FROM hoadon 
               WHERE trangthai = 'Hoàn tất' AND DATE(ngaylap) = '$date_today'";
 $today_revenue = $conn->query($sql_today)->fetch_assoc()['total'] ?? 0;
 
 // Doanh thu THÁNG NÀY
 $month_curr = date('m');
-$sql_month = "SELECT SUM(tongtien) as total FROM donhangthanhtoan 
+$sql_month = "SELECT SUM(tongtien) as total FROM hoadon 
               WHERE trangthai = 'Hoàn tất' AND MONTH(ngaylap) = '$month_curr'";
 $month_revenue = $conn->query($sql_month)->fetch_assoc()['total'] ?? 0;
 
-// =================================================================================
+
 // 2. DỮ LIỆU BIỂU ĐỒ: DOANH THU THEO NGÀY (7 NGÀY GẦN NHẤT)
-// =================================================================================
+
 $sql_chart = "SELECT DATE_FORMAT(ngaylap, '%d/%m/%Y') as ngay_hien_thi, SUM(tongtien) as tong_tien 
-              FROM donhangthanhtoan 
+              FROM hoadon 
               WHERE trangthai = 'Hoàn tất' 
               GROUP BY DATE(ngaylap) 
               ORDER BY ngaylap DESC LIMIT 7"; // Lấy 7 ngày có đơn gần nhất
@@ -56,10 +53,10 @@ if ($result_chart) {
 $chart_labels = array_reverse($chart_labels);
 $chart_data = array_reverse($chart_data);
 
-// =================================================================================
+
 // 3. TOP 5 ĐƠN HÀNG CÓ GIÁ TRỊ CAO NHẤT
-// =================================================================================
-$sql_top = "SELECT * FROM donhangthanhtoan 
+
+$sql_top = "SELECT * FROM hoadon 
             WHERE trangthai = 'Hoàn tất' 
             ORDER BY tongtien DESC LIMIT 5";
 $result_top = $conn->query($sql_top);
@@ -198,7 +195,7 @@ $result_top = $conn->query($sql_top);
     </div>
 
     <div class="text-center mt-4">
-        <a href="admin_donhangthanhtoan.php" class="btn btn-secondary">
+        <a href="admin_hoadon.php" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Quay lại quản lý đơn hàng
         </a>
     </div>
@@ -206,21 +203,21 @@ $result_top = $conn->query($sql_top);
 
 <script>
     // Lấy dữ liệu từ PHP
-    const labels = <?php echo json_encode($chart_labels); ?>; // Mảng Ngày
-    const data = <?php echo json_encode($chart_data); ?>;     // Mảng Tiền
+    const labels = <?php echo json_encode($chart_labels); ?>; 
+    const data = <?php echo json_encode($chart_data); ?>;     
 
     const ctx = document.getElementById('moneyChart').getContext('2d');
     const moneyChart = new Chart(ctx, {
-        type: 'bar', // Dạng cột để so sánh tiền dễ hơn
+        type: 'bar', 
         data: {
             labels: labels,
             datasets: [{
                 label: 'Doanh thu (VNĐ)',
                 data: data,
-                backgroundColor: 'rgba(184, 134, 11, 0.6)', // Màu vàng đồng
+                backgroundColor: 'rgba(184, 134, 11, 0.6)', 
                 borderColor: 'rgba(184, 134, 11, 1)',
                 borderWidth: 1,
-                barThickness: 40 // Độ rộng cột
+                barThickness: 40 
             }]
         },
         options: {
