@@ -60,7 +60,7 @@ $result = $conn->query($sql);
         #toast.error { background-color: #f44336; }
         #toast.show { opacity: 1; transform: translateX(0); }
         .marquee { display: inline-block; white-space: nowrap; overflow: hidden; animation: marquee 8s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
 
         #toast {
             position: fixed;
@@ -121,7 +121,7 @@ $result = $conn->query($sql);
 
 <body>
 
-    <div class="container-fluid mt-5">
+ 
 
     <?php include "head.php"; ?>
     <div class="container mt-5">

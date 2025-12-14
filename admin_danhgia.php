@@ -63,6 +63,7 @@ $result = $conn->query("SELECT * FROM danhgia ORDER BY ngaydang DESC");
             text-align: center;
             margin: 20px 0;
             font-size: 2rem;
+            
         }
 
         table {
@@ -132,29 +133,25 @@ $result = $conn->query("SELECT * FROM danhgia ORDER BY ngaydang DESC");
         }
 
         /* Hiệu ứng chữ chạy ngang */
-        .marquee {
+        /* .marquee {
             display: inline-block;
             white-space: nowrap;
             overflow: hidden;
-            animation: marquee 8s linear infinite;
-        }
-
-        @keyframes marquee {
-            0% {
-                transform: translateX(100%);
-            }
-
-            100% {
-                transform: translateX(-100%);
-            }
-        }
+            
+        } */
+        .marquee {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      animation: marquee 8s linear infinite;
+    }
     </style>
 </head>
 
 <body>
-    <h2 style="font-size: 30px; color: black; text-align: center; overflow: hidden; margin-top: 20px;">
+    <h2 style="font-size: 30px; color: black; text-align: center; overflow: hidden; margin-top: 20px;" >
         <span class="marquee">
-            <b>Quản Lí Đánh Giá Bình Luận</b>
+            <b  >Quản Lí Đánh Giá Bình Luận</b>
         </span>
     </h2>
     <table>
