@@ -37,7 +37,7 @@ if (isset($_POST['xoa'])) {
 $sql = "SELECT * FROM hoadon ORDER BY ngaylap DESC";
 $result = $conn->query($sql);
 ?>
-<?php include "head.php"; ?>
+
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -55,16 +55,77 @@ $result = $conn->query($sql);
         th { background: #e5c07b; color: #4b3c00; font-weight: bold; white-space: nowrap; }
         
         /* Toast thông báo */
+
         #toast { position: fixed; top: 80px; right: 20px; min-width: 200px; background-color: #4CAF50; color: white; padding: 10px 16px; border-radius: 6px; font-weight: bold; opacity: 0; pointer-events: none; transform: translateX(100%); transition: all 0.5s ease; z-index: 9999; }
         #toast.error { background-color: #f44336; }
         #toast.show { opacity: 1; transform: translateX(0); }
         .marquee { display: inline-block; white-space: nowrap; overflow: hidden; animation: marquee 8s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        #toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            min-width: 200px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(100%);
+            transition: all 0.5s ease;
+            z-index: 9999;
+        }
+
+        #toast.error {
+            background-color: #f44336;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Hiệu ứng icon nháy */
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        /* Hiệu ứng chữ chạy ngang */
+        .marquee {
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            animation: marquee 8s linear infinite;
+        }
+
+
+
     </style>
 </head>
 
 <body>
+
     <div class="container-fluid mt-5">
+
+    <?php include "head.php"; ?>
+    <div class="container mt-5">
+
         <h2 style="font-size: 30px; color: black; text-align: center; overflow: hidden; margin-top: 20px;">
             <span class="marquee"><b>Quản Lí Đơn Hàng Thanh Toán</b></span>
         </h2>

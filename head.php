@@ -1,73 +1,3 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Chủ - Nội Thất</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- Tailwind CDN và các plugin forms, typography -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-    <!-- Lazy load images -->
-    <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
-    <!-- Cấu hình màu sắc cho Tailwind sử dụng biến CSS -->
-    <script type="text/javascript">
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            darkMode: ['class'],
-            theme: {
-                extend: {
-                    colors: {
-                        border: 'hsl(var(--border))',
-                        input: 'hsl(var(--input))',
-                        ring: 'hsl(var(--ring))',
-                        background: 'hsl(var(--background))',
-                        foreground: 'hsl(var(--foreground))',
-                        primary: {
-                            DEFAULT: 'hsl(var(--primary))',
-                            foreground: 'hsl(var(--primary-foreground))'
-                        },
-                        secondary: {
-                            DEFAULT: 'hsl(var(--secondary))',
-                            foreground: 'hsl(var(--secondary-foreground))'
-                        },
-                        muted: {
-                            DEFAULT: 'hsl(var(--muted))',
-                            foreground: 'hsl(var(--muted-foreground))'
-                        },
-                        accent: {
-                            DEFAULT: 'hsl(var(--accent))',
-                            foreground: 'hsl(var(--accent-foreground))'
-                        },
-                        card: {
-                            DEFAULT: 'hsl(var(--card))',
-                            foreground: 'hsl(var(--card-foreground))'
-                        },
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --background: #fff;
-            --foreground: #222;
-            --primary: #22223b;
-            --primary-foreground: #fff;
-            --secondary: #CD853F;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-    </style>
-        <style>
-        nav a {
-            color: #222;
-            transition: color 0.25s cubic-bezier(.4,0,.2,1);
-        }
-        nav a:hover, nav a:focus {
-            color: #A67C68 !important;
-        }
-    </style>
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -90,8 +20,6 @@ if (!$username) {
     $cuoi_href = "dangnhap.php";
     $cuoi_text = "Đăng Nhập";
     $cuoi_onclick = "";
-
-
 } else if ($username == "admin") {
     $giohang_href = "";
     $giohang_onclick = "";
@@ -115,7 +43,7 @@ if (!$username) {
     
     $quanlysanpham_href = "quanlysanpham.php";
     $quanlysanpham_onclick = "";
-    $quanlysanpham_text = "Sản Phẩm";
+    $quanlysanpham_text = "Ql.Sản Phẩm";
     
     $thongke_href = "admin_thongke.php";
     $thongke_onclick = "";
@@ -129,7 +57,6 @@ if (!$username) {
     $giohang_onclick = "";
     $giohang_text = "Giỏ Hàng";
 
-    // Thêm hai dòng này để menu Đặt Hàng hiển thị cho user thường
     $dathang_href = "dathang.php";
     $dathang_text = "Đơn Hàng Của Bạn";
 
@@ -150,56 +77,145 @@ if (!$username) {
     $cuoi_onclick = "";
 }
 ?>
-<header class="flex justify-between items-center p-4 bg-secondary" style="background-color: #FDF5E6">
-    <div class="text-2xl font-bold" style="color: black;">NỘI THẤT HIỆN ĐẠI</div>
-  <nav class="space-x-4">
-    <a href="trangchu.php" class="text-muted hover:text-muted-foreground" style="color: black;">Trang Chủ</a>
-    <a href="sanpham.php" class="text-muted hover:text-muted-foreground" style="color: black;">Sản Phẩm</a>
-    <?php if ($username == "admin"): ?>
-        <a href="<?= $quanlysanpham_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlysanpham_onclick ? 'onclick="'.$quanlysanpham_onclick.'"' : '' ?>><?= $quanlysanpham_text ?></a>
-        <a href="<?= $quanlykhachhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlykhachhang_onclick ? 'onclick="'.$quanlykhachhang_onclick.'"' : '' ?>><?= $quanlykhachhang_text ?></a>
-        <a href="<?= $quanlydonhang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $quanlydonhang_onclick ? 'onclick="'.$quanlydonhang_onclick.'"' : '' ?>><?= $quanlydonhang_text ?></a>
-        <a href="<?= $danhgia_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $danhgia_onclick ? 'onclick="'.$danhgia_onclick.'"' : '' ?>><?= $danhgia_text ?></a>
-        <a href="<?= $thongke_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $thongke_onclick ? 'onclick="'.$thongke_onclick.'"' : '' ?>><?= $thongke_text ?></a>
-    <?php endif; ?>
-    <!-- Các menu khác -->
-    <a href="<?= $giohang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $giohang_onclick ? 'onclick="'.$giohang_onclick.'"' : '' ?>><?= $giohang_text ?></a>
-    <?php if (isset($dathang_href)): ?>
-        <a href="<?= $dathang_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;"><?= $dathang_text ?></a>
-    <?php endif; ?>
-    <a href="<?= $thongtin_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $thongtin_onclick ? 'onclick="'.$thongtin_onclick.'"' : '' ?>><?= $thongtin_text ?></a>
-    <a href="<?= $cuoi_href ?>" class="text-muted hover:text-muted-foreground" style="color: black;" <?= $cuoi_onclick ? 'onclick="'.$cuoi_onclick.'"' : '' ?>><?= $cuoi_text ?></a>
-</nav>
-    <input type="text" id="search-box" placeholder="Search..." class="border border-muted p-2 rounded" autocomplete="off" style="width:220px; position:relative;" />
-    <div id="autocomplete-box" class="autocomplete-suggestions" style="display:none;"></div>
-</header>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+
+<script type="text/javascript">
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+        darkMode: ['class'],
+        corePlugins: {
+            preflight: false, // Tắt chức năng reset CSS mặc định của Tailwind
+        },
+        theme: {
+            extend: {
+                colors: {
+                    border: 'hsl(var(--border))',
+                    input: 'hsl(var(--input))',
+                    ring: 'hsl(var(--ring))',
+                    background: 'hsl(var(--background))',
+                    foreground: 'hsl(var(--foreground))',
+                    primary: {
+                        DEFAULT: '#22223b',
+                        foreground: '#fff'
+                    },
+                    secondary: {
+                        DEFAULT: '#CD853F', // Màu cam đất
+                        foreground: '#fff'
+                    },
+                    muted: {
+                        DEFAULT: 'hsl(var(--muted))',
+                        foreground: 'hsl(var(--muted-foreground))'
+                    },
+                    accent: {
+                        DEFAULT: 'hsl(var(--accent))',
+                        foreground: 'hsl(var(--accent-foreground))'
+                    },
+                    card: {
+                        DEFAULT: 'hsl(var(--card))',
+                        foreground: 'hsl(var(--card-foreground))'
+                    },
+                },
+            }
+        }
+    }
+</script>
+
 <style>
-.autocomplete-suggestions {
-    position: absolute;
-    top: 56px;
-    right: 16px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 0 0 8px 8px;
-    width: 220px;
-    max-height: 220px;
-    overflow-y: auto;
-    z-index: 9999;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.autocomplete-suggestion {
-    padding: 10px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid #f3f3f3;
-}
-.autocomplete-suggestion:last-child {
-    border-bottom: none;
-}
-.autocomplete-suggestion:hover, .autocomplete-suggestion.active {
-    background: #ffe4c4;
-    color: #7B4B37;
-}
+    /* Biến màu fallback */
+    :root {
+        --background: #fff;
+        --foreground: #222;
+        --muted: #f3f4f6;
+        --muted-foreground: #6b7280;
+    }
+
+    /* Style menu */
+    .custom-header {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #FDF5E6; /* Màu nền kem */
+        border-bottom: 1px solid #e0d6c3;
+    }
+    
+    .custom-nav a {
+        color: #222;
+        text-decoration: none;
+        margin: 0 10px;
+        font-weight: 500;
+        transition: color 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    
+    .custom-nav a:hover, .custom-nav a:focus {
+        color: #CD853F !important; /* Màu hover */
+    }
+
+    /* Autocomplete Box */
+    .autocomplete-suggestions {
+        position: absolute;
+        top: 100%; /* Hiển thị ngay dưới ô input */
+        right: 0;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 0 0 8px 8px;
+        width: 100%; /* Rộng bằng ô input */
+        min-width: 220px;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: left;
+    }
+    .autocomplete-suggestion {
+        padding: 10px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f3f3;
+        font-size: 14px;
+        color: #333;
+    }
+    .autocomplete-suggestion:last-child {
+        border-bottom: none;
+    }
+    .autocomplete-suggestion:hover, .autocomplete-suggestion.active {
+        background: #ffe4c4;
+        color: #CD853F;
+    }
+    
+    /* Search wrapper */
+    .search-wrapper {
+        position: relative;
+        display: inline-block;
+    }
 </style>
+
+<header class="flex justify-between items-center p-4 custom-header">
+    <div class="text-2xl font-bold" style="color: black;">NỘI THẤT HIỆN ĐẠI</div>
+    
+    <nav class="space-x-4 custom-nav flex flex-wrap justify-center">
+        <a href="trangchu.php">Trang Chủ</a>
+        <a href="sanpham.php">Sản Phẩm</a>
+        <?php if ($username == "admin"): ?>
+            <a href="<?= $quanlysanpham_href ?>" <?= $quanlysanpham_onclick ? 'onclick="'.$quanlysanpham_onclick.'"' : '' ?>><?= $quanlysanpham_text ?></a>
+            <a href="<?= $quanlykhachhang_href ?>" <?= $quanlykhachhang_onclick ? 'onclick="'.$quanlykhachhang_onclick.'"' : '' ?>><?= $quanlykhachhang_text ?></a>
+            <a href="<?= $quanlydonhang_href ?>" <?= $quanlydonhang_onclick ? 'onclick="'.$quanlydonhang_onclick.'"' : '' ?>><?= $quanlydonhang_text ?></a>
+            <a href="<?= $danhgia_href ?>" <?= $danhgia_onclick ? 'onclick="'.$danhgia_onclick.'"' : '' ?>><?= $danhgia_text ?></a>
+            <a href="<?= $thongke_href ?>" <?= $thongke_onclick ? 'onclick="'.$thongke_onclick.'"' : '' ?>><?= $thongke_text ?></a>
+        <?php endif; ?>
+        
+        <a href="<?= $giohang_href ?>" <?= $giohang_onclick ? 'onclick="'.$giohang_onclick.'"' : '' ?>><?= $giohang_text ?></a>
+        <?php if (isset($dathang_href)): ?>
+            <a href="<?= $dathang_href ?>"><?= $dathang_text ?></a>
+        <?php endif; ?>
+        <a href="<?= $thongtin_href ?>" <?= $thongtin_onclick ? 'onclick="'.$thongtin_onclick.'"' : '' ?>><?= $thongtin_text ?></a>
+        <a href="<?= $cuoi_href ?>" <?= $cuoi_onclick ? 'onclick="'.$cuoi_onclick.'"' : '' ?>><?= $cuoi_text ?></a>
+    </nav>
+    
+    <div class="search-wrapper">
+        <input type="text" id="search-box" placeholder="Search..." class="border border-muted p-2 rounded" autocomplete="off" style="width:220px;" />
+        <div id="autocomplete-box" class="autocomplete-suggestions" style="display:none;"></div>
+    </div>
+</header>
+
 <script>
 const suggestions = [
     { name: "Bàn làm việc chân sắt", url: "chitietsp.php?masp=sp01" },
@@ -214,63 +230,54 @@ const suggestions = [
     { name: "Tủ giày thông minh", url: "chitietsp.php?masp=sp10" }
 ];
 
-
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-box');
     const suggestionBox = document.getElementById('autocomplete-box');
+    
     if (!searchInput || !suggestionBox) return;
 
-    searchInput.parentNode.style.position = 'relative';
-    suggestionBox.style.left = searchInput.offsetLeft + 'px';
-
     searchInput.addEventListener('input', function() {
-    const value = this.value.trim().toLowerCase();
-    suggestionBox.innerHTML = '';
+        const value = this.value.trim().toLowerCase();
+        suggestionBox.innerHTML = '';
 
-    // Nếu không nhập gì thì ẩn box
-    if (!value) {
-        suggestionBox.style.display = 'none';
-        return;
-    }
+        if (!value) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
 
-    // Lọc theo ký tự người dùng nhập
-    const filtered = suggestions.filter(item => item.name.toLowerCase().includes(value));
+        const filtered = suggestions.filter(item => item.name.toLowerCase().includes(value));
 
-    // Nếu không có sản phẩm phù hợp thì hiển thị "Không tìm thấy"
-    if (filtered.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'autocomplete-suggestion';
-        div.textContent = 'Không tìm thấy sản phẩm nào';
-        div.style.color = '#999';
-        suggestionBox.appendChild(div);
+        if (filtered.length === 0) {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-suggestion';
+            div.textContent = 'Không tìm thấy sản phẩm nào';
+            div.style.color = '#999';
+            suggestionBox.appendChild(div);
+            suggestionBox.style.display = 'block';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-suggestion';
+            div.innerHTML = item.name.replace(
+                new RegExp(value, 'gi'),
+                match => `<strong style="color:#CD853F">${match}</strong>`
+            );
+            div.onclick = function() {
+                window.location.href = item.url;
+            };
+            suggestionBox.appendChild(div);
+        });
+
         suggestionBox.style.display = 'block';
-        return;
-    }
-
-    // Hiển thị các gợi ý phù hợp
-    filtered.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'autocomplete-suggestion';
-        div.innerHTML = item.name.replace(
-            new RegExp(value, 'gi'),
-            match => `<strong style="color:#CD853F">${match}</strong>`
-        );
-        div.onclick = function() {
-            window.location.href = item.url;
-        };
-        suggestionBox.appendChild(div);
     });
 
-    suggestionBox.style.display = 'block';
-});
-
+    // Ẩn khi click ra ngoài
     document.addEventListener('click', function(e) {
-        if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
+        if (!searchInput.contains(e.target) && !suggestionBox.contains(e.target)) {
             suggestionBox.style.display = 'none';
         }
     });
 });
 </script>
-
-</header>
-</head>

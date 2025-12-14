@@ -94,15 +94,7 @@ ob_end_flush(); // ✅ Cho phép xuất HTML sau khi xong xử lý PHP
       font-size: 2rem;
     }
 
-    @keyframes marquee {
-      0% {
-        transform: translateX(100%);
-      }
 
-      100% {
-        transform: translateX(-100%);
-      }
-    }
 
     .marquee {
       display: inline-block;

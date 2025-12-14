@@ -99,6 +99,7 @@ if ($stmt_list) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Đơn hàng của bạn</title>
     <style>
+
         body { background-color: #fefaf0; font-family: Arial, sans-serif; min-height: 100vh; }
         h2 { color: #7a5a00; text-align: center; margin-top: 20px; }
         table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: #fffdf5; box-shadow: 0 4px 8px rgba(0,0,0,0.05); font-size: 14px; }
@@ -106,11 +107,63 @@ if ($stmt_list) {
         th { background-color: #e5c07b; color: #4b3c00; white-space: nowrap; }
         tr:nth-child(even) { background-color: #f9f5e8; }
         tr:hover { background-color: #f1ecdc; }
+
+        body {
+            background-color: #fefaf0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        h2 {
+            color: #7a5a00;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fffdf5;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0d6c3;
+        }
+
+        th {
+            background-color: #e5c07b;
+            color: #4b3c00;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f5e8;
+        }
+
+        tr:hover {
+            background-color: #f1ecdc;
+        }
+
+
+        .blink {
+            animation: blink 1s infinite;
+             font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
     </style>
 </head>
 <body>
+
     <h2 style="font-size: 30px; color: black;">
         <i class="fa-solid fa-cart-shopping" style="color:black; margin-right:10px;"></i>
+
+    <h2 style="font-size: 30px; color: black;" class="blink">
+        
+
         <b>Đơn hàng của bạn</b>
     </h2>
     <table>

@@ -150,21 +150,14 @@ unset($_SESSION['toast']);
 
         /* Hiệu ứng chữ chạy ngang */
         .marquee {
-            display: inline-block;
-            white-space: nowrap;
+            
+            font-family: 'Segoe UI', Arial, sans-serif;
+            
             overflow: hidden;
             animation: marquee 8s linear infinite;
         }
 
-        @keyframes marquee {
-            0% {
-                transform: translateX(100%);
-            }
 
-            100% {
-                transform: translateX(-100%);
-            }
-        }
     </style>
 </head>
 
