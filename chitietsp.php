@@ -5,6 +5,11 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $conn = new mysqli('localhost', 'root', '', 'webnoithat');
 $conn->set_charset("utf8");
 
+// Kiểm tra kết nối
+if ($conn->connect_error) {
+    die("Kết nối thất bại: " . $conn->connect_error);
+}
+
 $msp = $_GET['masp'] ?? '';
 $tentaikhoan = $_SESSION['username'] ?? null;
 
@@ -29,27 +34,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['xac_nhan_thanh_toan']
     $sdt = $_POST['sdt'] ?? '';
     $pttt = $_POST['pttt'] ?? '';
     $soluong = $_POST['soluong'] ?? 1;
+    $minh_chung_path = null; // Mặc định không có ảnh
+
+    // --- LOGIC UPLOAD ẢNH MINH CHỨNG (NẾU KHÔNG PHẢI COD) ---
+    if ($pttt !== 'Tiền mặt khi nhận hàng') {
+        if (isset($_FILES['minh_chung']) && $_FILES['minh_chung']['error'] == 0) {
+            $target_dir = "uploads/minhchung/";
+            // Tạo thư mục nếu chưa tồn tại
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true); 
+            }
+            
+            // Đổi tên file: time_tenfilegoc để tránh trùng
+            $filename = time() . '_' . basename($_FILES["minh_chung"]["name"]);
+            $target_file = $target_dir . $filename;
+            $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+            // Kiểm tra định dạng ảnh
+            $allow_types = array('jpg', 'png', 'jpeg', 'gif');
+            if (in_array($imageFileType, $allow_types)) {
+                if (move_uploaded_file($_FILES["minh_chung"]["tmp_name"], $target_file)) {
+                    $minh_chung_path = $target_file;
+                } else {
+                    $_SESSION['thongbao'] = "Lỗi khi tải ảnh lên server.";
+                    $_SESSION['thongbao_type'] = "error";
+                    header("Location: chitietsp.php?masp=" . $msp);
+                    exit;
+                }
+            } else {
+                $_SESSION['thongbao'] = "Chỉ chấp nhận file ảnh (JPG, JPEG, PNG, GIF).";
+                $_SESSION['thongbao_type'] = "error";
+                header("Location: chitietsp.php?masp=" . $msp);
+                exit;
+            }
+        } else {
+            // Nếu chọn thanh toán online mà không up ảnh
+            $_SESSION['thongbao'] = "Vui lòng tải lên ảnh minh chứng thanh toán.";
+            $_SESSION['thongbao_type'] = "error";
+            header("Location: chitietsp.php?masp=" . $msp);
+            exit;
+        }
+    }
 
     // Xử lý giá
     $gia_goc_str = $product['gia']; 
     $gia_clean = floatval(preg_replace('/[^0-9]/', '', $gia_goc_str)); 
     $tongtien = $gia_clean * $soluong;
 
-    $insert = $conn->prepare("INSERT INTO hoadon (tentaikhoan, masp, tensp, gia, soluong, tongtien, hoten, diachi, sdt, pttt, ngaylap, trangthai)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'Chờ xử lý')");
+    // INSERT DATABASE (Có thêm cột minh_chung)
+    $insert = $conn->prepare("INSERT INTO hoadon (tentaikhoan, masp, tensp, gia, soluong, tongtien, hoten, diachi, sdt, pttt, ngaylap, trangthai, minh_chung)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'Chờ xử lý', ?)");
     
-    $insert->bind_param("ssssisssss", 
+    $insert->bind_param("ssssissssss", 
         $tentaikhoan, $msp, $product['tensp'], $gia_clean, 
-        $soluong, $tongtien, $hoten, $diachi, $sdt, $pttt
+        $soluong, $tongtien, $hoten, $diachi, $sdt, $pttt, $minh_chung_path
     );
     
     if ($insert->execute()) {
-        $_SESSION['thongbao'] = "Mua thành công! Tổng: " . number_format($tongtien) . " VNĐ";
+        $_SESSION['thongbao'] = "Đặt hàng thành công! Đơn hàng đang chờ duyệt.";
         $_SESSION['thongbao_type'] = "success";
-        // Chuyển sang trang đơn hàng hoặc giỏ hàng tùy bạn, ở đây mình để reload lại trang hiện tại hoặc sang giỏ hàng
         header("Location: giohang.php"); 
     } else {
-        $_SESSION['thongbao'] = "Lỗi: " . $conn->error;
+        $_SESSION['thongbao'] = "Lỗi SQL: " . $conn->error;
         $_SESSION['thongbao_type'] = "error";
         header("Location: chitietsp.php?masp=" . $msp);
     }
@@ -89,7 +135,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     }
     $check->close();
 
-    // THÔNG BÁO VÀ LOAD LẠI TRANG (Thay vì chuyển sang giỏ hàng ngay)
     $_SESSION['thongbao'] = "Đã thêm vào giỏ hàng thành công!";
     $_SESSION['thongbao_type'] = "success";
     header("Location: chitietsp.php?masp=" . $msp);
@@ -108,7 +153,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     $sosao = intval($_POST['sosao']);
     $noidung = trim($_POST['noidung']);
 
-    // Kiểm tra đã mua hàng chưa
     $checkPurchase = $conn->prepare("SELECT 1 FROM hoadon WHERE tentaikhoan = ? AND masp = ? LIMIT 1");
     $checkPurchase->bind_param("ss", $tentaikhoan, $msp);
     $checkPurchase->execute();
@@ -144,7 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
 <title>Chi tiết sản phẩm</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
-    
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     :root { --primary-color: #7B4B37; --primary-color-light: #A67C68; --background-color: #e2ddcf; }
     body { background-color: var(--background-color); }
@@ -171,22 +214,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     
     /* CSS Modal */
     .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
-    .modal-content { background: #fffaf1; padding: 25px 30px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .modal-content { background: #fffaf1; padding: 25px 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
     .modal-content h2 { text-align: center; color: #7B4B37; margin-bottom: 15px; }
-    .modal-content input, .modal-content select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; }
+    .modal-content input[type="text"], .modal-content select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; }
     .modal-actions { margin-top: 15px; display: flex; justify-content: space-between; }
     .modal-actions button { padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; }
     .modal-actions button[type="submit"] { background-color: #7B4B37; color: white; }
     .modal-actions button[type="button"] { background-color: #ccc; }
     
+    /* CSS cho khu vực QR */
+    #paymentInfo { background:#f8f9fa; padding:15px; border-radius:8px; border:1px dashed #7B4B37; margin-top:10px; text-align:center; }
+    #qrImage { max-width: 150px; border-radius:8px; border:1px solid #ddd; margin: 10px 0; }
+    
     @media (max-width: 768px) { .product-container { flex-direction: column; } .product-image { height: 300px; } }
 
- 
     #toast {
         visibility: hidden;
         min-width: 250px;
         margin-left: -125px;
-        background-color: #28a745; /* Mặc định màu xanh */
+        background-color: #28a745;
         color: #fff;
         text-align: center;
         border-radius: 8px;
@@ -203,13 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
         align-items: center;
         gap: 10px;
     }
-
-    #toast.show {
-        visibility: visible;
-        opacity: 1;
-        top: 50px; /* Trượt xuống nhẹ */
-    }
-
+    #toast.show { visibility: visible; opacity: 1; top: 50px; }
     #toast i { font-size: 20px; }
 </style>
 </head>
@@ -307,21 +347,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     <div id="checkoutModal" class="modal">
       <div class="modal-content">
         <h2>Xác nhận thanh toán</h2>
-        <div id="modalProductInfo" style="margin-bottom:15px;"></div>
-        <form method="post">
+        <div id="modalProductInfo" style="margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom:10px;"></div>
+        
+        <form method="post" enctype="multipart/form-data">
           <input type="hidden" name="soluong" id="hiddenSoluong">
+          
           <label>Họ tên:</label>
-          <input type="text" name="hoten" required>
+          <input type="text" name="hoten" required placeholder="Nguyễn Văn A">
+          
           <label>Địa chỉ:</label>
-          <input type="text" name="diachi" required>
+          <input type="text" name="diachi" required placeholder="Số nhà, đường, quận/huyện...">
+          
           <label>Số điện thoại:</label>
-          <input type="text" name="sdt" required pattern="[0-9]{10,11}">
+          <input type="text" name="sdt" required pattern="[0-9]{10,11}" placeholder="09xxxxxxxx">
+          
           <label>Phương thức thanh toán:</label>
-          <select name="pttt" required>
-            <option value="Tiền mặt khi nhận hàng">Thanh toán khi nhận hàng</option>
+          <select name="pttt" id="paymentMethod" required>
+            <option value="Tiền mặt khi nhận hàng">Thanh toán khi nhận hàng (COD)</option>
             <option value="Chuyển khoản ngân hàng">Chuyển khoản ngân hàng</option>
-            <option value="Ví điện tử">Ví điện tử</option>
+            <option value="Ví điện tử">Ví điện tử (Momo/ZaloPay)</option>
           </select>
+            
+          <div id="paymentInfo" style="display:none;">
+            <p style="font-weight:bold; color:#7B4B37; margin:0;">Quét mã để thanh toán</p>
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_3R8PxOgpNi-geB7nPNrWN72VBzFNPumoqw&s"  src="" alt="QR Code">
+            <p id="bankNote" style="font-size:12px; margin-bottom:10px;">Nội dung CK: <b><span id="orderSyntax">Tên - SĐT</span></b></p>
+            
+            <label style="font-weight:bold; display:block; text-align:left; margin-bottom:5px;">Tải lên ảnh bằng chứng:</label>
+            <input type="file" name="minh_chung" id="proofFile" accept="image/*" style="border:none; padding:0; width:100%;">
+          </div>
+
           <div class="modal-actions">
             <button type="submit" name="xac_nhan_thanh_toan">Xác nhận</button>
             <button type="button" id="closeModal">Hủy</button>
@@ -331,29 +386,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     </div>
 
     <script>
-    // Hàm hiện thông báo Toast
     function launchToast(message, type = 'success') {
         var x = document.getElementById("toast");
         var msg = document.getElementById("toast-message");
         var icon = x.querySelector('i');
 
         msg.innerText = message;
-        
-        // Đổi màu và icon tùy loại thông báo
         if (type === 'error') {
-            x.style.backgroundColor = "#dc3545"; // Đỏ
+            x.style.backgroundColor = "#dc3545"; 
             icon.className = "fa-solid fa-circle-exclamation";
         } else {
-            x.style.backgroundColor = "#28a745"; // Xanh
+            x.style.backgroundColor = "#28a745"; 
             icon.className = "fa-solid fa-circle-check";
         }
-
         x.className = "show";
         setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Kiểm tra Session để hiện thông báo từ PHP
+        // Hiện thông báo PHP
         <?php if (isset($_SESSION['thongbao'])): ?>
             launchToast("<?= $_SESSION['thongbao'] ?>", "<?= isset($_SESSION['thongbao_type']) ? $_SESSION['thongbao_type'] : 'success' ?>");
         <?php 
@@ -362,14 +413,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
         ?>
         <?php endif; ?>
 
-        // Logic Modal Mua Ngay
+        // DOM Elements
         const modal = document.getElementById('checkoutModal');
         const buyNowBtn = document.querySelector('.buy-now');
         const closeBtn = document.getElementById('closeModal');
         const quantityInput = document.querySelector('.quantity-input');
         const productInfoDiv = document.getElementById('modalProductInfo');
         const hiddenSoluong = document.getElementById('hiddenSoluong');
+        
+        // QR Logic Elements
+        const paymentSelect = document.getElementById('paymentMethod');
+        const paymentInfo = document.getElementById('paymentInfo');
+        const qrImage = document.getElementById('qrImage');
+        const proofFile = document.getElementById('proofFile');
+        const orderSyntax = document.getElementById('orderSyntax');
 
+        // --- CẤU HÌNH LINK QR CỦA BẠN TẠI ĐÂY ---
+        // Ví dụ: https://img.vietqr.io/image/ACB-12345678-compact.jpg
+        const QR_BANK = 'https://via.placeholder.com/150?text=QR+Ngan+Hang'; 
+        const QR_WALLET = 'https://via.placeholder.com/150?text=QR+Vi+Dien+Tu';
+
+        // Mở Modal
         buyNowBtn.addEventListener('click', () => {
             const name = document.querySelector('.product-title').textContent;
             const price = document.querySelector('.product-price').textContent;
@@ -377,17 +441,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
             const soluong = quantityInput.value;
 
             hiddenSoluong.value = soluong;
+            
+            // Tính tạm tổng tiền
+            let priceNum = parseInt(price.replace(/\D/g, ''));
+            let total = (priceNum * soluong).toLocaleString('vi-VN');
 
             productInfoDiv.innerHTML = `
             <div style="display:flex;align-items:center;gap:10px;">
                 <img src="${img}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;">
                 <div>
-                <strong>${name}</strong><br>
+                <strong style="color:#7B4B37">${name}</strong><br>
                 <span>Giá: ${price}</span><br>
-                <span>Số lượng: ${soluong}</span>
+                <span>Số lượng: <b>${soluong}</b></span><br>
+                <span style="color:red; font-weight:bold;">Tổng: ${total} VNĐ</span>
                 </div>
             </div>`;
+            
+            // Reset form trạng thái ban đầu
+            paymentSelect.value = "Tiền mặt khi nhận hàng";
+            paymentInfo.style.display = 'none';
+            proofFile.required = false;
+            
             modal.style.display = 'flex';
+        });
+
+        // Sự kiện đổi phương thức thanh toán
+        paymentSelect.addEventListener('change', function() {
+            if (this.value === 'Tiền mặt khi nhận hàng') {
+                paymentInfo.style.display = 'none';
+                proofFile.required = false; 
+            } else {
+                paymentInfo.style.display = 'block';
+                proofFile.required = true; // Bắt buộc phải chọn ảnh
+
+                if (this.value === 'Chuyển khoản ngân hàng') {
+                    qrImage.src = QR_BANK;
+                } else if (this.value === 'Ví điện tử') {
+                    qrImage.src = QR_WALLET;
+                }
+            }
         });
 
         closeBtn.addEventListener('click', () => modal.style.display = 'none');
